@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: order
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: CONFIG
+      profile: dev
+      #服务追踪的地址，这样可以把该服务绑定到运行的zipkin
+  zipkin:
+    base-url: http://127.0.0.1:9411/
+    #发送到外部（zipkin）的接口信息，默认抽取10%。，这里配置为100%，每个请求都能在zipkin看到具体信息（耗时）
+  sleuth:
+    sampler:
+      percentage: 1
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+#默认断路超时时间1s
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 1000
+#针对getProductList方法，设置为3s
+    getProductList:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 3000
+
+#feign使用hystrix
+feign:
+  hystrix:
+    enabled: true
+logging:
+  level: debug
+
+
+#config-client使用注意事项：
+#1、配置文件改名为bootstrap，，它会首先加载，然后获取CONFIG中拉取的配置文件并加载
+#2、发现与注册的地址配置（defaultZone），要写到这里先加载，这样它首先从指定uri的注册中心（8762）
+#   去发现CONFIG服务并读取到配置文件。 如果defaultZone写到git的配置文件中，启动时会默认访问localhost:8761注册中心
+#   的CONFIG服务，然后获取到配置文件中的实际defaultZone来注册自己。。。这个时候，如果CONFIG并没有注册到8761，是
+#   无法读取到配置文件的。
+#3、CONFIG获取到的配置文件，，会对order.yml和order-xx.yml合并，所以我们只能把公用的配置放到order.yml中。

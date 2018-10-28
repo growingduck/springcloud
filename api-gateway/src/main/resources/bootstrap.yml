@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: CONFIG
+      profile: dev
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+server:
+  port: 9000
+#zuul:
+##自定义路由
+#  routes:
+#    myProduct:
+#      path: /myProduct/**
+#      serviceId: product
+##不需要路由的url，有些接口不需要暴露，只在内部服务间调用
+  ignored-patterns:
+    - /product/product/listForOrder
+    - /myproduct/product/listForOrder
+##    通配符配置
+##    - /**/product/listForOrder
+##    不需要spring认证,这样可以访问/application/routes查看路由信息
+management:
+  security:
+    enabled: false
+zuul:
+# 所有服务的忽略敏感头
+  sensitive-headers:
+  routes:
+    myProduct:
+      path: /myProduct/**
+      serviceId: PRODUCT
+#      敏感头设置为空,否则默认会拦截"Cookie", "Set-Cookie", "Authorization"，单个服务敏感头在这里设置
+#      sensitiveHeaders:
+#ribbon:
+#  ReadTimeout: 60000
+#  ConnectTimeout: 60000
+#zuul:
+#  host:
+#    connect-timeout-millis: 60000
+#    socket-timeout-millis: 60000
+#zuul中引用了hystrix,默认超时时间只有1s
+hystrix:
+    command:
+        default:
+            execution:
+                isolation:
+                    thread:
+                        timeout-in-milliseconds: 60000
+
+
+
+
+
+
+
+
+#如果要实现config动态刷新，代码在启动类中，这里不放到码云上去了。
